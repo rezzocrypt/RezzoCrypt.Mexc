@@ -4,7 +4,7 @@
     {
         public class AccountBalances
         {
-            public string Asset { get; set; }
+            public string? Asset { get; set; }
             public double Free { get; set; }
             public double Locked { get; set; }
 
@@ -20,9 +20,9 @@
         public bool CanWithdraw { get; set; }
         public bool CanDeposit { get; set; }
 
-        public string AccountType { get; set; }
-        public string[] Permissions { get; set; }
+        public string? AccountType { get; set; }
+        public string[]? Permissions { get; set; }
 
-        public AccountBalances[] Balances { get; set; }
+        public AccountBalances[]? Balances { get; set; }
     }
 }

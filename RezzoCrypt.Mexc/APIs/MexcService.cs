@@ -5,12 +5,18 @@ namespace RezzoCrypt.Mexc.APIs
     public class MexcService
     {
         private readonly MexcConnection _connection;
+
         public MexcService(MexcConnection connection)
         {
             _connection = connection;
         }
-        public string Ping() => _connection.GetUrlResult<string>("/api/v3/ping");
 
-        public DateTime Time() => _connection.GetUrlResult<string>("/api/v3/time").DateFromTicks();
+        public Task<string> PingAsync() => _connection.GetUrlResultAsync<string>("/api/v3/ping");
+
+        public async Task<DateTime> TimeAsync()
+        {
+            var time = await _connection.GetUrlResultAsync<string>("/api/v3/time");
+            return time.DateFromTicks();
+        }
     }
 }

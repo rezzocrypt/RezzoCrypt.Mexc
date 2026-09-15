@@ -31,7 +31,7 @@ namespace RezzoCrypt.Mexc
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
 
-        internal T GetUrlResult<T>(string url, object? data = null, Method method = Method.Get, bool secure = false)
+        internal async Task<T> GetUrlResultAsync<T>(string url, object? data = null, Method method = Method.Get, bool secure = false)
             where T : class
         {
             var currentRequest = _baseUrl
@@ -47,37 +47,40 @@ namespace RezzoCrypt.Mexc
 
             try
             {
-                var responseResult = method switch
+                var httpMethod = method switch
                 {
-                    Method.Post => data != null
-                        ? currentRequest.PostUrlEncodedAsync(data).Result
-                        : currentRequest.PostAsync().Result,
-                    _ => currentRequest.SetQueryParams(data).GetAsync().Result,
+                    Method.Post => HttpMethod.Post,
+                    Method.Delete => HttpMethod.Delete,
+                    _ => HttpMethod.Get
                 };
 
+                var responseResult = await currentRequest.SendAsync(httpMethod);
+
                 return typeof(T) == typeof(string)
-                    ? (T)(responseResult.GetStringAsync().Result as object)
-                    : responseResult.GetJsonAsync<T>().Result;
+                    ? (T)(object)await responseResult.GetStringAsync()
+                    : await responseResult.GetJsonAsync<T>();
             }
-            catch (Exception ex)
+            catch (FlurlHttpException fhttpex)
             {
-                if (ex is FlurlHttpException fhttpex)
+                string? serverErrorMessage = null;
+
+                if (fhttpex.Call.Response != null)
                 {
-                    string serverErrorMessage = string.Empty;
                     try
                     {
-                        serverErrorMessage = $"url: {url}, data: {currentRequest.Url.Query}, error: {fhttpex.Call.Response.GetStringAsync().Result}";
+                        serverErrorMessage = $"url: {url}, data: {currentRequest.Url.Query}, error: {await fhttpex.Call.Response.GetStringAsync()}";
                     }
                     catch
                     {
-                        // Could not extract server side error , just continue with original exception.
-                    }
-
-                    if (serverErrorMessage != null)
-                    {
-                        throw new Exception(serverErrorMessage);
+                        // Could not extract server side error, just continue with original exception.
                     }
                 }
+
+                if (!string.IsNullOrEmpty(serverErrorMessage))
+                {
+                    throw new Exception(serverErrorMessage, fhttpex);
+                }
+
                 throw;
             }
         }

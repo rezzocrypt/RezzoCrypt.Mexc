@@ -6,7 +6,8 @@ namespace RezzoCrypt.Mexc.Objects.Data
     {
         [JsonProperty(PropertyName = "price")]
         public double Price { get; set; }
+
         [JsonProperty(PropertyName = "time")]
-        public string Date { get; set; }
+        public long Time { get; set; }
     }
 }

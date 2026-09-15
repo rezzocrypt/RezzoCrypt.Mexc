@@ -17,7 +17,9 @@ namespace RezzoCrypt.Mexc.APIs
         {
             LIMIT,
             MARKET,
-            LIMIT_MAKER
+            LIMIT_MAKER,
+            IOC,
+            FOK
         }
 
         public MexcExchange(MexcConnection connection)
@@ -25,17 +27,17 @@ namespace RezzoCrypt.Mexc.APIs
             _connection = connection;
         }
 
-        public BidsAsks ExchangePositions(string symbol, int limit = 10) => _connection.GetUrlResult<BidsAsks>("/api/v3/depth", new { symbol, limit });
+        public Task<BidsAsks> ExchangePositionsAsync(string symbol, int limit = 10) => _connection.GetUrlResultAsync<BidsAsks>("/api/v3/depth", new { symbol, limit });
 
-        public Order[] OpenedOrders(string symbol) => _connection.GetUrlResult<Order[]>("/api/v3/openOrders", new { symbol }, secure: true);
+        public Task<Order[]> OpenedOrdersAsync(string symbol) => _connection.GetUrlResultAsync<Order[]>("/api/v3/openOrders", new { symbol }, secure: true);
 
-        public Order[] AllOrders(string symbol, DateTime startDate, DateTime endDate) => _connection.GetUrlResult<Order[]>("/api/v3/allOrders", new { symbol, startTime = startDate.StringTicksFromDate(), endTime = endDate.StringTicksFromDate() }, secure: true);
+        public Task<Order[]> AllOrdersAsync(string symbol, DateTime startDate, DateTime endDate) => _connection.GetUrlResultAsync<Order[]>("/api/v3/allOrders", new { symbol, startTime = startDate.StringTicksFromDate(), endTime = endDate.StringTicksFromDate() }, secure: true);
 
-        public string CancellAllOrders(string symbol) => _connection.GetUrlResult<string>("/api/v3/openOrders", new { symbol }, MexcConnection.Method.Delete, secure: true);
+        public Task<string> CancelAllOrdersAsync(string symbol) => _connection.GetUrlResultAsync<string>("/api/v3/openOrders", new { symbol }, MexcConnection.Method.Delete, secure: true);
 
-        public string CancelOrder(string symbol, string orderId) => _connection.GetUrlResult<string>("/api/v3/order", new { symbol, orderId }, MexcConnection.Method.Delete, secure: true);
+        public Task<string> CancelOrderAsync(string symbol, string orderId) => _connection.GetUrlResultAsync<string>("/api/v3/order", new { symbol, orderId }, MexcConnection.Method.Delete, secure: true);
 
-        public Order PlaceOrder(string symbol, double price, double qty, OrderSide side = OrderSide.BUY, OrderType type = OrderType.LIMIT) => _connection.GetUrlResult<Order>("/api/v3/order", new
+        public Task<Order> PlaceOrderAsync(string symbol, double price, double qty, OrderSide side = OrderSide.BUY, OrderType type = OrderType.LIMIT) => _connection.GetUrlResultAsync<Order>("/api/v3/order", new
         {
             symbol,
             side = side.ToString(),
@@ -44,7 +46,7 @@ namespace RezzoCrypt.Mexc.APIs
             price
         }, MexcConnection.Method.Post, secure: true);
 
-        public Order PlaceMarketOrder(string symbol, double qty, OrderSide side = OrderSide.BUY) => _connection.GetUrlResult<Order>("/api/v3/order", new
+        public Task<Order> PlaceMarketOrderAsync(string symbol, double qty, OrderSide side = OrderSide.BUY) => _connection.GetUrlResultAsync<Order>("/api/v3/order", new
         {
             symbol,
             side = side.ToString(),
